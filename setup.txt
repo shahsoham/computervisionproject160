@@ -76,3 +76,6 @@ alias startssh='systemctl start ssh'
 alias stopssh='systemctl stop ssh'
 alias restartssh='systemctl restart ssh'
 alias statusssh='systemctl status ssh'">> .bash_aliases;
+
+# Installing Foundation-CLI app for creating proto type and stuff, makes life easier. Do this only after you have installed node as it is one of the node packages.
+sudo npm install -g foundation bower gulp
