@@ -1,58 +1,53 @@
-CREATE DATABASE 'FacialMeshDB';
-Use FacialMeshDB;
+CREATE DATABASE cs160;
+\c cs160
 
-DROP TABLE IF EXISTS User;
-CREATE TABLE User
-(
-	userID	serial NOT NULL primary key,
+DROP TABLE IF EXISTS "User";
+CREATE TABLE "User" (
+	userID	serial NOT NULL PRIMARY KEY,
 	username	varchar(50),
 	password	varchar(50),
 	firstName	varchar(50),
 	lastName	varchar(50),
 	lastLogin	timestamp,
 	lastIPLocation	varchar(50),
-	salt	varchar(50) # should this really be stored in the database or computed each time? srs question!
+	salt	varchar(50) --should this really be stored in the database or computed each time? srs question!
 );
 
-DROP TABLE IF EXISTS Video;
-CREATE TABLE Video
-(
-	videoID	serial NOT NULL primary key,
+DROP TABLE IF EXISTS "Video";
+CREATE TABLE "Video" (
+	videoID	serial NOT NULL PRIMARY KEY,
 	userID	int NOT NULL,
-	FOREIGN KEY (userID) references User(userID) ON DELETE CASCADE,
+	FOREIGN KEY (userID) references "User"(userID) ON DELETE CASCADE,
 	frame_count	int,
 	width	int,
 	height	int,
 	fps	real
 );
 
-DROP TABLE IF EXISTS Frame;
-CREATE TABLE Frame
-(
+DROP TABLE IF EXISTS "Frame";
+CREATE TABLE "Frame" (
 	videoID int NOT NULL,
-	FOREIGN KEY (videoID) references Video(videoID) ON DELETE CASCADE,
+	FOREIGN KEY (videoID) references "Video"(videoID) ON DELETE CASCADE,
 	frame_number	int,
-	frame_path	varchar(50), #the path to the frame in the file system
+	frame_path	varchar(50), --the path to the frame in the file system
 	PRIMARY KEY(videoID, frame_number)
 );
 
-DROP TABLE IF EXISTS SkullPosition;
-CREATE TABLE SkullPosition
-(
+DROP TABLE IF EXISTS "SkullPosition";
+CREATE TABLE "SkullPosition" (
 	videoID int NOT NULL,
-	FOREIGN KEY (videoID) references Video(videoID) ON DELETE CASCADE,
+	FOREIGN KEY (videoID) references "Video"(videoID) ON DELETE CASCADE,
 	frame_number	int,
-	yaw real, #degrees or radians?
+	yaw real, --degrees or radians?
 	pitch real,
 	roll real,
 	PRIMARY KEY(videoID, frame_number)
 );
 
-DROP TABLE IF EXISTS PupilData;
-CREATE TABLE PupilData
-(
+DROP TABLE IF EXISTS "PupilData";
+CREATE TABLE "PupilData" (
 	videoID int NOT NULL,
-	FOREIGN KEY (videoID) references Video(videoID) ON DELETE CASCADE,
+	FOREIGN KEY (videoID) references "Video"(videoID) ON DELETE CASCADE,
 	frame_number	int,
 	leftOpenFaceEye	point,
 	rightOpenFaceEye	point,
@@ -61,11 +56,11 @@ CREATE TABLE PupilData
 	PRIMARY KEY(videoID, frame_number)
 );
 
-DROP TABLE IF EXISTS OpenFaceData;
-CREATE TABLE OpenFaceData
-(
+DROP TABLE IF EXISTS "OpenFaceData";
+CREATE TABLE "OpenFaceData" (
 	videoID int NOT NULL,
-	FOREIGN KEY (videoID) references Video(videoID) ON DELETE CASCADE,
+	FOREIGN KEY (videoID) references "Video"(videoID) ON DELETE CASCADE,
+	frame_number int,
 	dataPoint1   point,
 	dataPoint2   point,
 	dataPoint3   point,
