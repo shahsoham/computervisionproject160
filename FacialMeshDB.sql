@@ -121,6 +121,14 @@ CREATE TABLE "OpenFaceData" (
 	dataPoint58   point,
 	dataPoint59   point,
 	dataPoint60   point,
+	dataPoint61   point,
+	dataPoint62   point,
+	dataPoint63   point,
+	dataPoint64   point,
+	dataPoint65   point,
+	dataPoint66   point,
+	dataPoint67   point,
+	dataPoint68   point,
 	PRIMARY KEY(videoID, frame_number)
 );
 
