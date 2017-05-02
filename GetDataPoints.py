@@ -13,12 +13,22 @@ def main(argv):
 	if(len(sys.argv) != 3):
 		print("Error! Invalid number of arguments")
 		sys.exit(2) 
-	if(sys.argv[1][0] != '/' and sys.argv[1][len(sys.argv[1]) - 1] != '/'):
+	elif(sys.argv[1][0] != '/' and sys.argv[1][len(sys.argv[1]) - 1] != '/'):
 		print("Error! Not a valid directory")
 		sys.exit(2)
-	else:
-		imageDirectory = sys.argv[1]
-	videoID = sys.argv[2]
+	else: #make sure there's an entry for the input videoID
+		try:
+			conn=psycopg2.connect("dbname='cs160' user='postgres' host='localhost' password='student'")
+		except:
+			print("Unable to connect to the database.")
+		cur = conn.cursor()
+		cur.execute("""SELECT * FROM "Video" where videoid=%s""", (sys.argv[2], ))
+		if(cur.fetchone() == None):
+			print("No such videoID in the database")
+			sys.exit(2)
+		else:
+			imageDirectory = sys.argv[1]
+			videoID = sys.argv[2]
 	outputDataFile = imageDirectory + 'output.csv'
 	createDatapoints(imageDirectory, outputDataFile)
 	trimmedFile = trimFile(outputDataFile)
