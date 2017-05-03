@@ -29,7 +29,7 @@ def main(argv):
 		else:
 			imageDirectory = sys.argv[1]
 			videoID = sys.argv[2]
-	outputDataFile = imageDirectory + 'output.csv'
+	outputDataFile = imageDirectory + 'output' + '.' + str(videoID) + '.csv'
 	createDatapoints(imageDirectory, outputDataFile)
 	trimmedFile = trimFile(outputDataFile)
 	insertIntoDatabase(trimmedFile, 1)
@@ -125,4 +125,4 @@ def adapt_point(point):
 register_adapter(Point, adapt_point)
 
 if __name__ == "__main__":
-   main(sys.argv[1:])
+	main(sys.argv[1:])
