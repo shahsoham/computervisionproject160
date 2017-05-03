@@ -38,6 +38,7 @@ def main(argv):
 	height = values[2]
 	fps = values[3]
 	drawOverTheImages(imageDirectory, frame_count, videoID, cur)
+	conn.close() #close the connection to the database
 
 	
 """
