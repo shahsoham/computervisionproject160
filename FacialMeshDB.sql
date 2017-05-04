@@ -21,17 +21,12 @@ CREATE TABLE "Video" (
 	frame_count	int,
 	width	int,
 	height	int,
-	fps	real
+	fps	real,
+	imageDirectory varchar(75)
 );
 
 DROP TABLE IF EXISTS "Frame";
-CREATE TABLE "Frame" (
-	videoID int NOT NULL,
-	FOREIGN KEY (videoID) references "Video"(videoID) ON DELETE CASCADE,
-	frame_number	int,
-	frame_path	varchar(50), --the path to the frame in the file system
-	PRIMARY KEY(videoID, frame_number)
-);
+
 
 DROP TABLE IF EXISTS "SkullPosition";
 CREATE TABLE "SkullPosition" (
@@ -131,4 +126,3 @@ CREATE TABLE "OpenFaceData" (
 	dataPoint68   point,
 	PRIMARY KEY(videoID, frame_number)
 );
-
