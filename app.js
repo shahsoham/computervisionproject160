@@ -4,26 +4,50 @@ var bodyParser = require('body-parser');
 var expressValidator = require('express-validator');
 var expressSession = require('express-session');
 var bcrypt = require('bcryptjs');
+// var router = require('./server/controllers/database.js')
+// Connect DB
+var pg = require('pg');
+// DB connect String
+var connect = "postgres://postgres:nicoleiscool@localhost:5432/cs160";
+// var client = new pg.Client(connect);
 
 app.use(bodyParser.urlencoded({extended: true})); // support encoded bodies
 app.use(expressValidator()); // this starts validator
 app.use(expressSession({secret: process.env.SESSION||'secret', saveUninitialized: false, resave: false}));
-app.use(express.static(__dirname + '/static')); // add css files into ejs files (static contents)
+app.use(express.static(__dirname + '/client/static')); // add css files into ejs files (static contents)
 
 
 // tell express what view engine is (here we change view to .ejs)
-app.set('views', __dirname + '/views');
+app.set('views', __dirname + '/client/views');
 app.set('view engine', 'ejs');
 
 // request to the root of the site
 // Here we set login as our home page
 app.get('/', function(req, res){
-  console.log("Test session data: ", req.session, " The end of login page!");
+  // console.log("Test session data: ", req.session, " The end of login page!");
   var login = true;
   var success = req.session.success;
   var errors = req.session.errors;
-  res.render('login', {login: login, success: success, errors: errors});
-  req.session.errors = null; // reset error properties in session to null
+
+  // Connect db:
+  pg.connect(connect, function(err, client, done){
+    if (err){
+      return console.log('error fetching client from pool', err);
+    }
+    console.log("Connected to database");
+    client.query('SELECT * FROM User', function(err, result){
+      done();
+      if(err){
+        return console.error('error running query', err);
+      }
+      console.log("is there results? ", result)
+      res.render('login', {login: login, success: success, errors: errors});
+      req.session.errors = null; // reset error properties in session to null
+    })
+  })
+
+
+
   // req.session.success = true;
 });
 
@@ -36,12 +60,6 @@ app.get('/register', function(req, res){
 
 // User page, get user's data (here is hard coded, later needs to connet to database)
 app.get("/users", function (req, res){
-  // var users_arrays = [
-  //   {name: "nicole", email: "changtongzhou@gmail.com"},
-  //   {name: "alex", email: "alex@gmail.com"},
-  //   {name: "james", email: "james@gmail.com"}
-  // ];
-  // res.render('users', {users: users_arrays});
   res.render('users');
 });
 
@@ -96,13 +114,33 @@ app.post('/register-form', function (req, res){
     // req.session.errors = null;
   } else{
     req.session.success = true;
-    // redirect to the /users route
-    var username = req.body.username;
-    console.log("Congradulations! You are registered, please login, and your POST DATA is: ", username);
-    // res.redirect('/');
     var login = false;
-    res.render('login', {login: login, username: username, success: req.session.success});
-  }
+    // Grab data from http request
+    var results = {
+      email: req.body.email,
+      firstname: req.body.firstname,
+      lastname: req.body.lastname,
+      username: req.body.username,
+      password: req.body.password
+    };
+    // DB part
+    // Get a postgres client from the connection pool
+    pg.connect(connect, function(err, client, done){
+      if (err){
+        return console.log('error fetching client from pool', err);
+      }
+      console.log("Planning to insert data into database");
+
+      // SQL query -> Insert Data:
+      client.query("INSERT INTO users (email, username, password, firstname, lastname) VALUES($1, $2, $3, $4, $5)",
+                  [results.email, results.username, results.password, results.firstname, results.lastname]);
+                  done();
+                  console.log("Congradulations! You are registered, please login, and your POST DATA is: ", results.username);
+                  res.render('login', {login: login, username: results.username, success: req.session.success});
+
+    // res.redirect('/');
+    });
+  }; // else part
 
 
 });

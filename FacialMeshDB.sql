@@ -1,16 +1,18 @@
 CREATE DATABASE cs160;
 \c cs160
 
-DROP TABLE IF EXISTS "User";
-CREATE TABLE "User" (
-	userID	serial NOT NULL PRIMARY KEY,
-	username	varchar(50),
-	password	varchar(50),
-	firstName	varchar(50),
-	lastName	varchar(50),
-	lastLogin	timestamp,
-	lastIPLocation	varchar(50),
-	salt	varchar(50) --should this really be stored in the database or computed each time? srs question!
+DROP TABLE IF EXISTS "users";
+CREATE TABLE "users" (
+	userID serial NOT NULL PRIMARY KEY,
+	email text,
+	username varchar(50),
+	password varchar(50),
+	firstName varchar(50),
+	lastName varchar(50),
+	lastLogin timestamp default now(),
+	lastIPLocation varchar(256),
+	createdAt timestamp default now(),
+	salt varchar(50) --should this really be stored in the database or computed each time? srs question!
 );
 
 DROP TABLE IF EXISTS "Video";
