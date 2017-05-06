@@ -28,7 +28,7 @@
         <img class="circle responsive-img" style="width: 150px;" src="/imgs/facialdetect.jpg" />
         <div class="section"></div>
         <% if (login){ %>
-            <h5 class="indigo-text">Please, login into your account</h5>
+            <h4 class="indigo-text">Please, login into your account</h4>
             <!-- <a  href="/register" style="font-size: 25px">Don't have an account? Creat Account!</a> -->
         <% } else{ %>
           <h3 class="indigo-text">Hello, <%= username %></h3>
@@ -39,11 +39,7 @@
         <% if (!success){ %>
           <% if (errors) { %>
             <section class="errors">
-              <ul>
-                <% for (var i in errors) {%>
-                  <li>Error message: <%= errors[i].msg %></li>
-                <% } %>
-              </ul>
+                  <h5>Error message: <%= errors %></h5>
             </section>
           <% }%>
         <% }%>

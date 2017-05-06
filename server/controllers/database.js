@@ -36,20 +36,24 @@ router.post('/register-form', function(req, res){
     username: req.body.username,
     password: req.body.password
   };
-
+  // DB part
   // Get a postgres client from the connection pool
   pg.connect(connect, function(err, client, done){
     if (err){
-      done();
-      console.log(err);
-      return res.status(500).json({success: false, data: err});
+      return console.log('error fetching client from pool', err);
     }
+    console.log("Planning to insert data into database");
 
     // SQL query -> Insert Data:
-    var query = client.query("INSERT INTO User (email, username, firstname, lastname, lastlogin, lastiplocation, createdat) values($1, $2, $3, $4, $5, $6, $7)",
-                [email, username, firstname, lastname, current_timestamp, "San Jose",current_timestamp, ]);
+    client.query("INSERT INTO users (email, username, password, firstname, lastname) VALUES($1, $2, $3, $4, $5)",
+                [results.email, results.username, results.password, results.firstname, results.lastname]);
                 done();
-                res.redirect('/');
+                console.log("Congradulations! You are registered, please login, and your POST DATA is: ", results.username);
+                res.render('login', {login: login, username: results.username, success: req.session.success});
+
+  // res.redirect('/');
+  });
+
     // SQL query -> Select Datal
     // var query = client.query("SELECT * FROM User ORDER BY userid ASC");
 
