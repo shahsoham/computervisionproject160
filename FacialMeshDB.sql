@@ -1,7 +1,8 @@
 CREATE DATABASE cs160;
 \c cs160
 
-DROP TABLE IF EXISTS "users";
+DROP TABLE IF EXISTS "users" CASCADE;
+DROP TABLE IF EXISTS "User" CASCADE;
 CREATE TABLE "users" (
 	userID serial NOT NULL PRIMARY KEY,
 	email text,
@@ -15,11 +16,11 @@ CREATE TABLE "users" (
 	salt varchar(50) --should this really be stored in the database or computed each time? srs question!
 );
 
-DROP TABLE IF EXISTS "Video";
+DROP TABLE IF EXISTS "Video" CASCADE;
 CREATE TABLE "Video" (
 	videoID	serial NOT NULL PRIMARY KEY,
 	userID	int NOT NULL,
-	FOREIGN KEY (userID) references "User"(userID) ON DELETE CASCADE,
+	FOREIGN KEY (userID) references "users"(userID) ON DELETE CASCADE,
 	frame_count	int,
 	width	int,
 	height	int,
@@ -27,10 +28,10 @@ CREATE TABLE "Video" (
 	imageDirectory varchar(75)
 );
 
-DROP TABLE IF EXISTS "Frame";
+DROP TABLE IF EXISTS "Frame" CASCADE;
 
 
-DROP TABLE IF EXISTS "SkullPosition";
+DROP TABLE IF EXISTS "SkullPosition" CASCADE;
 CREATE TABLE "SkullPosition" (
 	videoID int NOT NULL,
 	FOREIGN KEY (videoID) references "Video"(videoID) ON DELETE CASCADE,
@@ -41,7 +42,7 @@ CREATE TABLE "SkullPosition" (
 	PRIMARY KEY(videoID, frame_number)
 );
 
-DROP TABLE IF EXISTS "PupilData";
+DROP TABLE IF EXISTS "PupilData" CASCADE;
 CREATE TABLE "PupilData" (
 	videoID int NOT NULL,
 	FOREIGN KEY (videoID) references "Video"(videoID) ON DELETE CASCADE,
@@ -53,7 +54,7 @@ CREATE TABLE "PupilData" (
 	PRIMARY KEY(videoID, frame_number)
 );
 
-DROP TABLE IF EXISTS "OpenFaceData";
+DROP TABLE IF EXISTS "OpenFaceData" CASCADE;
 CREATE TABLE "OpenFaceData" (
 	videoID int NOT NULL,
 	FOREIGN KEY (videoID) references "Video"(videoID) ON DELETE CASCADE,
