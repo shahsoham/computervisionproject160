@@ -1,5 +1,5 @@
 #! /usr/bin/python
-# requires install of psycopg2 (use pip), OpenFace w/ the executable, and csvkit
+# requires install of psycopg2 (use pip), dlib, and skimage
 
 import sys
 from subprocess import call
