@@ -37,8 +37,7 @@ def main(argv):
 	width = values[1]
 	height = values[2]
 	fps = values[3]
-	drawOverTheImages(imageDirectory, frame_count, videoID, cur)
-	conn.close() #close the connection to the database
+	drawOverTheImages(imageDirectory, frame_count, videoID, cur, fps)
 
 	
 """
@@ -47,7 +46,7 @@ dumps the output images
 takes arguments for the imageDriectory, frame_count, videoID, and 
 the cursor for the database connection
 """
-def drawOverTheImages(imageDirectory, frame_count, videoID, cur):
+def drawOverTheImages(imageDirectory, frame_count, videoID, cur, fps):
 	# Define colors for drawing.
 	delaunay_color = (255,0,0)
 	points_color = (0, 0, 255)
@@ -56,6 +55,7 @@ def drawOverTheImages(imageDirectory, frame_count, videoID, cur):
 	#truncate characters off until we reach the root directory
 	while(outputDirectory[-1:] != '/'):
 		outputDirectory = outputDirectory[:-1]
+	rootDirectory = outputDirectory
 	outputDirectory = outputDirectory + 'output_images_video_' + str(videoID) + '/';
 	# create directory to store the files
 	if not os.path.exists(outputDirectory):
@@ -63,8 +63,8 @@ def drawOverTheImages(imageDirectory, frame_count, videoID, cur):
 	#iterate over each image in the directory
 	for frame in range(1, frame_count + 1):
 		#images follow naming convention videoId.frame_number.jpg
-		imagePath = imageDirectory + str(videoID) + '.' + str(frame) + '.jpg'
-		outputImage = outputDirectory + str(videoID) + '.' + str(frame) + '.out.jpg'
+		imagePath = imageDirectory + str(videoID) + '.' + str(frame) + '.png'
+		outputImage = outputDirectory + str(videoID) + '.' + str(frame) + '.out.png'
 		cur.execute("""SELECT datapoint1, datapoint2, datapoint3, datapoint4, datapoint5, datapoint6, 
 		datapoint7, datapoint8, datapoint9, datapoint10, datapoint11, datapoint12, 
 		datapoint13, datapoint14, datapoint15, datapoint16, datapoint17, datapoint18, 
@@ -80,7 +80,6 @@ def drawOverTheImages(imageDirectory, frame_count, videoID, cur):
 		""", (videoID, frame))
 		current_points = cur.fetchone()
 		#now begin using code from the sample program
-    #TODO: query for the pupil points once they are ready
 		#put the data points in a list
 		points = [];
 		for point in current_points:
@@ -103,6 +102,11 @@ def drawOverTheImages(imageDirectory, frame_count, videoID, cur):
 		for p in points :
 			draw_point(img, p, (0,0,255))
 		cv2.imwrite(outputImage, img);
+	#stitch the images together with ffmpeg
+	#ffmpeg -framerate 24 -i img%03d.png output.mp4
+	outputFileName = rootDirectory + str(videoID) + '.mp4'
+	imagesToStitch = outputDirectory + str(videoID) + '.%d.out.png'
+	call(['ffmpeg', '-framerate', str(fps), '-i', imagesToStitch, outputFileName ])
 
 #cast postgresql point type to our user defined point type (see getdatapoints.py)
 def cast_point(value, cur):
