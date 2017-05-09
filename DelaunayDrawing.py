@@ -1,5 +1,5 @@
 import cv2
-import GetDataPoints
+import DlibGetDataPoints
 import psycopg2
 import sys, os
 from subprocess import call
@@ -108,14 +108,14 @@ def drawOverTheImages(imageDirectory, frame_count, videoID, cur, fps):
 	imagesToStitch = outputDirectory + str(videoID) + '.%d.out.png'
 	call(['ffmpeg', '-framerate', str(fps), '-i', imagesToStitch, outputFileName ])
 
-#cast postgresql point type to our user defined point type (see getdatapoints.py)
+#cast postgresql point type to our user defined point type (see dlibgetdatapoints.py)
 def cast_point(value, cur):
 	if value is None:
 		return None
 	# Convert from (f1, f2) syntax using a regular expression.
 	m = re.match(r"\(([^)]+),([^)]+)\)", value)
 	if m:
-		return GetDataPoints.Point(float(m.group(1)), float(m.group(2)))
+		return DlibGetDataPoints.Point(float(m.group(1)), float(m.group(2)))
 	else:
 		raise InterfaceError("bad point representation: %r" % value)
 
