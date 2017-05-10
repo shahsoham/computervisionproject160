@@ -7,6 +7,14 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.2/css/materialize.min.css">
     <link rel="stylesheet" href="/css/stylesheet.css">
+<<<<<<< HEAD
+    <script type="text/javascript">
+      function upload(){
+        var x = document.getElementById("myFile");
+      }
+    </script>
+=======
+>>>>>>> aeef84d0b292960d24c5c71de044fc1578f90bbc
   </head>
 
   <body>
@@ -26,18 +34,43 @@
       <center>
         <img class="circle responsive-img" style="width: 150px;" src="/imgs/facialdetect.jpg" />
         <div class="section"></div>
+<<<<<<< HEAD
+        <% if (login){ %>
+          <h3 class="indigo-text">Hello, <%= username %></h3>
+        <% }%>
+
+=======
 
         <h3 class="indigo-text">Hello, <%= username %></h3>
+>>>>>>> aeef84d0b292960d24c5c71de044fc1578f90bbc
         <h4 class="indigo-text">Welcome to our app! </h4>
 
         <div class="section"></div>
 
         <div class="container">
           <div class="z-depth-1 grey lighten-4 row" style="display: inline-block; padding: 32px 48px 0px 48px; border: 1px solid #EEE;">
+<<<<<<< HEAD
+            <form ref="uploadForm" action="/users-form" method="post" enctype="multipart/form-data">
+
+              <center>
+                <h6 class="indigo-text">Please upload your video here.</h6>
+                <br>
+                <div class='row'>
+                  <input type="file" name="myfile" id="myFile">
+                  <br>
+                  <br>
+                  <button type='submit' name='upload_btn' class='col s12 btn btn-large waves-effect indigo'>Uplaod Videos</button>
+                  <br />
+                </div>
+
+              </center>
+              <!-- <input type="submit" value="create user"> -->
+=======
             <form class="" action="/users-form" method="post">
               Name: <input type="text" name="name">
               Email: <input type="text" name="email">
               <input type="submit" value="create user">
+>>>>>>> aeef84d0b292960d24c5c71de044fc1578f90bbc
             </form>
           </div>
         </div>

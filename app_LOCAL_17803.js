@@ -4,32 +4,21 @@ var bodyParser = require('body-parser');
 var expressValidator = require('express-validator');
 var expressSession = require('express-session');
 var bcrypt = require('bcryptjs');
-<<<<<<< HEAD
 var fileUpload = require('express-fileupload');
 var fs = require('fs');
-=======
->>>>>>> aeef84d0b292960d24c5c71de044fc1578f90bbc
 // var database = require('./server/controllers/database.js');
 // var router = require('./server/controllers/database.js')
 // Connect DB
 var pg = require('pg');
 // DB connect String
-<<<<<<< HEAD
 var connect = "postgres://postgres:student@localhost:5432/cs160";
-=======
-var connect = "postgres://postgres:nicoleiscool@localhost:5432/cs160";
->>>>>>> aeef84d0b292960d24c5c71de044fc1578f90bbc
 // var client = new pg.Client(connect);
 
 app.use(bodyParser.urlencoded({extended: true})); // support encoded bodies
 app.use(expressValidator()); // this starts validator
 app.use(expressSession({secret: process.env.SESSION||'secret', saveUninitialized: false, resave: false}));
 app.use(express.static(__dirname + '/client/static')); // add css files into ejs files (static contents)
-<<<<<<< HEAD
 app.use (fileUpload());
-=======
-
->>>>>>> aeef84d0b292960d24c5c71de044fc1578f90bbc
 
 // tell express what view engine is (here we change view to .ejs)
 app.set('views', __dirname + '/client/views');
@@ -57,12 +46,8 @@ app.get('/register', function(req, res){
 
 // User page, get user's data (here is hard coded, later needs to connet to database)
 app.get("/users", function (req, res){
-<<<<<<< HEAD
   var login = false;
   res.render('users', {login: login});
-=======
-  res.render('users');
->>>>>>> aeef84d0b292960d24c5c71de044fc1578f90bbc
 });
 
 app.get('/logout', function(req, res){
@@ -71,10 +56,7 @@ app.get('/logout', function(req, res){
 
 // post rout for login page adding user's data to database
 app.post('/login-form', function (req, res, next){
-<<<<<<< HEAD
   var login = true;
-=======
->>>>>>> aeef84d0b292960d24c5c71de044fc1578f90bbc
   var login_info = {
     email: req.body.email,
     password: req.body.password
@@ -92,36 +74,23 @@ app.post('/login-form', function (req, res, next){
     // var user_ps = client.query("SELECT password FROM users WHERE email = $1", [login_info.email]);
     pg.connect(connect, function(err, client, done){
         if(err){
-<<<<<<< HEAD
           login =false;
-=======
->>>>>>> aeef84d0b292960d24c5c71de044fc1578f90bbc
           return console.error('error fetching client from pool', err);
         }
         client.query('SELECT * FROM users WHERE email = $1', [login_info.email],function(err, result){
           done(err);
           if (err){
-<<<<<<< HEAD
             login =false;
-=======
->>>>>>> aeef84d0b292960d24c5c71de044fc1578f90bbc
             return console.error('Error running query', err);
           }
           console.log("Testing what is result!!", result.rows);
           if (result.rows.length > 0){
             if (result.rows[0].password == login_info.password){
-<<<<<<< HEAD
               res.render('users', {username: result.rows[0].username, login: login});
               console.log("Congrates! You are logged in succesfully! ");
             }
             else{
               login = false;
-=======
-              res.render('users', {username: result.rows[0].username});
-              console.log("Congrates! You are logged in succesfully! ");
-            }
-            else{
->>>>>>> aeef84d0b292960d24c5c71de044fc1578f90bbc
               req.session.errors = "Sorry, wrong password, please try again!";
               req.session.success = false;
               console.log("what is the error?zzzzzzzzzzzzzzzzzzzzzz ", req.session.errors);
@@ -130,10 +99,7 @@ app.post('/login-form', function (req, res, next){
             }
           }
           else{
-<<<<<<< HEAD
             login = false;
-=======
->>>>>>> aeef84d0b292960d24c5c71de044fc1578f90bbc
             req.session.errors = "Sorry, this account does not exist, please try again!";
             req.session.success = false;
             console.log("what is the error?zzzzzzzzzzzzzzzzzzzzzz ", req.session.errors);
@@ -217,10 +183,6 @@ app.post('/register-form', function (req, res){
                   console.log("Congradulations! You are registered, please login, and your POST DATA is: ", results.username);
                   res.render('login', {login: login, username: results.username, success: req.session.success});
 
-<<<<<<< HEAD
-=======
-    // res.redirect('/');
->>>>>>> aeef84d0b292960d24c5c71de044fc1578f90bbc
     });
   }; // else part
 
@@ -228,7 +190,6 @@ app.post('/register-form', function (req, res){
 });
 
 app.post('/users-form', function (req, res){
-<<<<<<< HEAD
   var login = true;
   var dir = '/home/jonomint/Desktop/server_files/user/user1_test'
   if (!fs.existsSync(dir)){
@@ -249,9 +210,6 @@ app.post('/users-form', function (req, res){
     console.log("file uploaded!!!");
   })
 
-=======
-  console.log("Thanks for submitting data, your POST DATA is: ", req.body);
->>>>>>> aeef84d0b292960d24c5c71de044fc1578f90bbc
   // redirect to the root route
   res.redirect('/users');
 });
