@@ -11,7 +11,7 @@ var fs = require('fs');
 // Connect DB
 var pg = require('pg');
 // DB connect String
-var connect = "postgres://postgres:nicoleiscool@localhost:5432/cs160";
+var connect = "postgres://postgres:student@localhost:5432/cs160";
 // var connect = "postgres://postgres:student@localhost:5432/cs160";
 // var client = new pg.Client(connect);
 
@@ -206,52 +206,131 @@ app.post('/register-form', function (req, res){
 
 });
 
-app.post('/file-upload', function (req, res, next){
+function blobToFile(theBlob, fileName){
+    //A Blob() is almost a File() - it's just missing the two properties below which we will add
+    theBlob.lastModifiedDate = new Date();
+    theBlob.name = fileName;
+    return theBlob;
+}
+
+function processFile(dir, clientid, userid){
+  // System call
+  var child = require('child_process');
+  var path = './DissectVideo.py';
+  // create child process of the script and pass one argument from the request
+  var process = child.execFileSync('python', [path, dir, userid]);
+  // end of process 1
+  console.log("System python script call is working!!");
+  io.sockets.connected[clientid].emit('file_upload_status', {status: "Got facial data points"});
+  // Connect to database;
+  pg.connect(connect, function(err, client, done){
+    if (err){
+      return console.error("error fetching client from pool", err);
+    }
+    console.log("Connected to database!!!!!", userid);
+      client.query('SELECT videoid, imagedirectory  from \"Video\" where userid=$1 ORDER BY videoid DESC limit 1', [userid],function(err, result){
+        if (err){
+          io.sockets.connected[clientid].emit('file_upload_status', {status: "Failed to get Meta-Data"});
+          console.log(err);
+        } else {
+          io.sockets.connected[clientid].emit('file_upload_status', {status: "Got Meta-Data"});
+          var videoid = result.rows[0].videoid;
+          var imageDirectory = result.rows[0].imagedirectory + '/';
+          console.log("success got video id ", videoid, imageDirectory);
+
+          // process2
+          var path2 = './DlibGetDataPoints.py'
+          var process2 = child.execFileSync('python', [path2, imageDirectory, videoid]);
+          console.log("Got the facial landmarks successfully")
+          // end of process 2
+          io.sockets.connected[clientid].emit('file_upload_status', {status: "Got facial landmarks"});
+          // process3
+          var path3 = 'eyeLike/EyePoints.py'
+          var process3 = child.execFileSync('python', [path3, imageDirectory, videoid]);
+          console.log("Got the pupil points successfully")
+          // end of process 3
+          io.sockets.connected[clientid].emit('file_upload_status', {status: "Got pupil data"});
+
+          // process4
+          var path4 = './DelaunayDrawing.py'
+          var process4 = child.execFileSync('python', [path4, imageDirectory, videoid]);
+          io.sockets.connected[clientid].emit('file_upload_status', {status: "Drew delaunay triangles"});
+          console.log("drew the delaunay triangles and stitched the video")
+          // end of process 4
+        }
+      })
+  })
+
+}
+
+app.post('/file-upload/:clientId', function (req, res, next){
   if (req.session.userId) {
+    console.log("clientId:", req.params.clientId);
+    // console.log("files", req.body);
+
 
     var login = true;
     var userid = req.session.userId;
-    var dir = '/home/jonomint/Desktop/server_files/user/user1_test'
+    var clientid = req.params.clientId;
+    //var dir = '/home/jonomint/Desktop/server_files/user/user1_test'
+    var dir = '/home/jonomint/Desktop/server_files/user/'+ userid;
     if (!fs.existsSync(dir)){
       fs.mkdirSync(dir);
     }
     if(!req.files){
       // socket emit upload error
-      return res.status(400).send('No files were uploaded');
+      console.log("upload error");
+      // console.log("sockets:\n", io.sockets.connected[clientid]);
+      io.sockets.connected[clientid].emit('file_upload_status', {status: "No files were uploaded"})
+      // return res.status(400).send('No files were uploaded');
+    } else {
+      console.log(req.files.upload)
+      var file = req.files.upload;
+
+      console.log("Thanks for submitting data, your POST DATA is: ", file.name); // the uploaded file object
+      // console.log("This is the file you uploaded: ", file);
+      dir = dir+'/'+file.name;
+      //move file into a directory
+      file.mv(dir, function(err){
+        if(err){
+          console.log("Failed to save file", err);
+          io.sockets.connected[clientid].emit('file_upload_status', {status: "Failed to save file"})
+        } else {
+          io.sockets.connected[clientid].emit('file_upload_status', {status: "File uploaded!!!"})
+          processFile(dir, clientid, userid);
+        }
+      })
+
+      // // System call
+      // var spawn = require('child_process').spawn;
+      // var path = './DissectVideo.py';
+      // // create child process of the script and pass one argument from the request
+      // var process = spawn('python', [path, dir, userid]);
+      // process.on('close', function(data){
+      //   console.log("System python script call is working!!", data);
+      // })
+      //
+      // // Connect to database;
+      // pg.connect(connect, function(err, client, done){
+      //   if (err){
+      //     return console.error("error fetching client from pool", err);
+      //   }
+      //   console.log("Connected to database!!!!!");
+      //
+      //   client.query('max(videoid), imageDirectory from \"Video\" where userid=$1 GROUP BY videoid', userid,function(err, result){
+      //     if (err){
+      //       console.log(err);
+      //     }
+      //
+      //   })
+      //
+      //   //client.query("SELECT max(videoid), imageDirectory from Video where userid=$1 GROUP BY videoid;", [userid])
+      //   //client.query("SELECT max(videoid), imageDirectory from \"Video\" where userid=1 GROUP BY videoid;")
+
+      // })
+      // redirect to the root route
     }
-    console.log("Thanks for submitting data, your POST DATA is: ", req.files.myfile); // the uploaded file object
-    var file = req.files.myfile
-    console.log("This is the file you uploaded: ", file);
-    dir = dir+'/'+req.files.myfile.name;
-    //move file into a directory
-    file.mv(dir, function(err){
-      if(err){
-        return res.status(500).send(err);
-      }
-      console.log("file uploaded!!!");
-    })
-
-    // System call
-    var spawn = require('child_process').spawn;
-    var path = './DissectVideo.py';
-    // create child process of the script and pass one argument from the request
-    var process = spawn('python', [path, dir, userid]);
-    process.stdout.on('data', function(data){
-      console.log("System python script call is working!!", data);
-    })
-
-    // Connect to database;
-    pg.connect(connect, function(err, client, done){
-      if (err){
-        return console.error("error fetching client from pool", err);
-      }
-      console.log("Connected to database!!!!!");
-      //client.query("SELECT max(videoid), imageDirectory from Video where userid=$1 GROUP BY videoid;", [userid])
-      client.query("SELECT max(videoid), imageDirectory from \"Video\" where userid=1 GROUP BY videoid;")
-
-    })
-    // redirect to the root route
-    res.redirect('/users');
+    res.status(200).send("done")
   } else {
     res.redirect('/')
   }
@@ -271,9 +350,20 @@ app.post('/users-form/:userid', function(req, res, next){
 
 // Specify app port
 var port = process.env.PORT || 1337;
-
-app.listen(port, function(){
+var server = app.listen(port, function(){
   console.log('http://127.0.0.1:' + port + '/');
 });
+
+
+// sockets
+var io = require('socket.io')(server);
+
+io.on('connection', function(client){
+  console.log("Socket connected:", client.id)
+  client.emit('connected', {clientId: client.id})
+
+  // client.on('disconnect', function(){});
+});
+
 
 module.exports = app;

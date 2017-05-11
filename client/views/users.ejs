@@ -7,10 +7,97 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.2/css/materialize.min.css">
     <link rel="stylesheet" href="/css/stylesheet.css">
-    <script type="text/javascript">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.1/socket.io.js"></script>
+    <script type="text/javascript" defer>
+    $(document).ready(function() {
+      var userId = "<%= userid %>";
+
+      console.log("run js");
+
       function upload(){
         var x = document.getElementById("myFile");
       }
+
+      var socket = io.connect('127.0.0.1:1337');
+      var clientId = null;
+      var files;
+
+      // Add events
+      $('input[type=file]').on('change', prepareUpload);
+
+      // Grab the files and set them to our variable
+      function prepareUpload(event){
+        files = event.target.files;
+      }
+
+
+      $('form').submit(function(e){
+        e.preventDefault();
+        console.log("upload file");
+
+        $form = $(e.target);
+
+    		// Serialize the form data
+    		// var data = $form.serialize();
+        var data = new FormData();
+        data.append("upload", files[0])
+    		// You should sterilise the file names
+    		// $.each(data.files, function(key, value){
+    		// 	data = data + '&filenames[]=' + value;
+    		// });
+
+        console.log('data:', files[0])
+        $.ajax({
+          url: '/file-upload/'+clientId,
+          type: 'POST',
+          data: data,
+          cache: false,
+          dataType: 'json',
+          processData: false, // Don't process the files
+          contentType: false, // Set content type to false as jQuery will tell the server its a query string request
+          success: function(data, textStatus, jqXHR){
+            if(typeof data.error === 'undefined'){
+                // Success so call function to process the form
+                console.log('file uploaded')
+            } else {
+                // Handle errors here
+                console.log('ERRORS: ' + data.error);
+            }
+          },
+          error: function(jqXHR, textStatus, errorThrown){
+              // Handle errors here
+              console.log('ERRORS: ' + textStatus);
+              // STOP LOADING SPINNER
+          }
+        });
+
+        // var input = $('#myFile');
+        // else if (!input.files) { alert("This browser doesn't seem to support the `files` property of file inputs."); }
+        // else if (!input.files[0]) { alert("Please select a file before clicking 'Load'"); }
+        // else {
+        //   file = input.files[0];
+        //   fr = new FileReader();
+        //   fr.onload = file_loaded;
+        //   fr.readAsDataURL(file);
+        // }
+
+
+        // console.log(files);
+        // socket.emit('file_upload', {file:files});
+        return false;
+      })
+
+
+      socket.on('connected', function(data){
+        console.log('socket connected:', data.clientId);
+        clientId = data.clientId;
+      })
+
+      socket.on('file_upload_status', function(upload_status){
+        console.log("upload_status", upload_status.status);
+      })
+    })
     </script>
   </head>
 
@@ -40,8 +127,8 @@
         <div class="container">
           <div class="z-depth-1 grey lighten-4 row" style="display: inline-block; padding: 32px 48px 0px 48px; border: 1px solid #EEE;">
 
-            <form ref="uploadForm" action="/users-form/<%= userid %>" method="post" enctype="multipart/form-data">
-              
+            <form id='file-upload' ref="uploadForm" action="/users-form/<%= userid %>" method="post" enctype="multipart/form-data">
+
               <center>
                 <h6 class="indigo-text">Please upload your video here.</h6>
                 <br>
