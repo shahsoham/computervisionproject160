@@ -34,7 +34,7 @@ def main(argv):
 	values = cur.fetchone()
 	frame_count = values[0]
 
-	outFile = "/home/bundit/Desktop/computervisionproject160/eyeLike/EyeCoordinatesOutput.txt"
+	outFile = "/home/jonomint/Desktop/160_Project/eyeLike/EyeCoordinatesOutput.txt"
 
 	#Delete file if exists to write new coorindates to new file
 	try:
@@ -61,7 +61,7 @@ def getEyePointsToFile(imageDirectory, frame_count, videoID):
 		#images follow naming convention videoId.frame_number.jpg
 		imagePath = imageDirectory + str(videoID) + '.' + str(frame) + '.jpg'
 		#print imagePath + "\n"
-		call(['/home/bundit/Desktop/computervisionproject160/eyeLike/build/bin/./eyeLike', imagePath, '1', str(frame)])
+		call(['/home/jonomint/Desktop/160_Project/eyeLike/build/bin/./eyeLike', imagePath, '1', str(frame)])
 
 """
 	Inserts the eye coordinates in the database 
