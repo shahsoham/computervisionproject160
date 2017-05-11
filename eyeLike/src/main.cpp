@@ -119,7 +119,7 @@ void findEyes(cv::Mat frame_gray, cv::Rect face, const std::string& path, const 
   circle(debugFace, leftPupil, 3, 1234);
   
   //output image with regions drawn
-  //imwrite("frame.png",frame_gray);
+  imwrite("/home/jonomint/Desktop/pics/frame.png",frame_gray);
 
   //write the coordinates of left and right pupils to console
   //printf("Right Pupil Coordinates: X - %d Y - %d \n", rightPupil.x, rightPupil.y);
@@ -130,13 +130,13 @@ void findEyes(cv::Mat frame_gray, cv::Rect face, const std::string& path, const 
   //outfile.open(&path, std::ofstream::out | std::ofstream::app);
   outfile << frame_num;
   outfile << ",";
-  outfile << rightPupil.x;
+  outfile << (rightPupil.x + face.x);
   outfile << ",";
-  outfile << rightPupil.y;
+  outfile << (rightPupil.y + face.y);
   outfile << ",";
-  outfile << leftPupil.x;
+  outfile << (leftPupil.x + face.x);
   outfile << ",";
-  outfile << leftPupil.y;
+  outfile << (leftPupil.y + face.y);
   outfile << "\n";
   
   outfile.close();

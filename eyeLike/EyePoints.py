@@ -59,7 +59,7 @@ def getEyePointsToFile(imageDirectory, frame_count, videoID):
 
 	for frame in range(1, frame_count + 1):
 		#images follow naming convention videoId.frame_number.jpg
-		imagePath = imageDirectory + str(videoID) + '.' + str(frame) + '.jpg'
+		imagePath = imageDirectory + str(videoID) + '.' + str(frame) + '.png'
 		#print imagePath + "\n"
 		call(['/home/jonomint/Desktop/160_Project/eyeLike/build/bin/./eyeLike', imagePath, '1', str(frame)])
 
