@@ -76,7 +76,10 @@ def drawOverTheImages(imageDirectory, frame_count, videoID, cur, fps):
 		datapoint49, datapoint50, datapoint51, datapoint52, datapoint53, datapoint54, 
 		datapoint55, datapoint56, datapoint57, datapoint58, datapoint59, datapoint60, 
 		datapoint61, datapoint62, datapoint63, datapoint64, datapoint65, datapoint66, 
-		datapoint67, datapoint68 FROM "OpenFaceData" WHERE videoid=%s AND frame_number=%s
+		datapoint67, datapoint68, leftfabianpupil, rightfabianpupil FROM "OpenFaceData", 
+		"PupilData" WHERE "OpenFaceData".videoid = "PupilData".videoid 
+		AND "OpenFaceData".frame_number="PupilData".frame_number 
+		AND "OpenFaceData".videoid=%s AND "OpenFaceData".frame_number=%s
 		""", (videoID, frame))
 		current_points = cur.fetchone()
 		#now begin using code from the sample program

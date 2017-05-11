@@ -206,30 +206,55 @@ app.post('/register-form', function (req, res){
 
 });
 
-app.post('/users-form', function (req, res){
-  var login = true;
-  var dir = '/home/nicole/Desktop/file_test/user/user1_test'
-  // var dir = '/home/jonomint/Desktop/server_files/user/user1_test'
-  if (!fs.existsSync(dir)){
-    fs.mkdirSync(dir);
-  }
-  if(!req.files){
-    return res.status(400).send('No files were uploaded');
-  }
-  console.log("Thanks for submitting data, your POST DATA is: ", req.files.myfile); // the uploaded file object
-  var file = req.files.myfile
-  console.log("This is the file you uploaded: ", file);
-  dir = dir+'/'+req.files.myfile.name;
-  //move file into a directory
-  file.mv(dir, function(err){
-    if(err){
-      return res.status(500).send(err);
-    }
-    console.log("file uploaded!!!");
-  })
+app.post('/file-upload', function (req, res, next){
+  if (req.session.userId) {
 
-  // redirect to the root route
-  res.redirect('/users');
+    var login = true;
+    var userid = req.session.userId;
+    var dir = '/home/jonomint/Desktop/server_files/user/user1_test'
+    if (!fs.existsSync(dir)){
+      fs.mkdirSync(dir);
+    }
+    if(!req.files){
+      // socket emit upload error
+      return res.status(400).send('No files were uploaded');
+    }
+    console.log("Thanks for submitting data, your POST DATA is: ", req.files.myfile); // the uploaded file object
+    var file = req.files.myfile
+    console.log("This is the file you uploaded: ", file);
+    dir = dir+'/'+req.files.myfile.name;
+    //move file into a directory
+    file.mv(dir, function(err){
+      if(err){
+        return res.status(500).send(err);
+      }
+      console.log("file uploaded!!!");
+    })
+
+    // System call
+    var spawn = require('child_process').spawn;
+    var path = './DissectVideo.py';
+    // create child process of the script and pass one argument from the request
+    var process = spawn('python', [path, dir, userid]);
+    process.stdout.on('data', function(data){
+      console.log("System python script call is working!!", data);
+    })
+
+    // Connect to database;
+    pg.connect(connect, function(err, client, done){
+      if (err){
+        return console.error("error fetching client from pool", err);
+      }
+      console.log("Connected to database!!!!!");
+      //client.query("SELECT max(videoid), imageDirectory from Video where userid=$1 GROUP BY videoid;", [userid])
+      client.query("SELECT max(videoid), imageDirectory from \"Video\" where userid=1 GROUP BY videoid;")
+
+    })
+    // redirect to the root route
+    res.redirect('/users');
+  } else {
+    res.redirect('/')
+  }
 });
 
 app.post('/users-form/:userid', function(req, res, next){

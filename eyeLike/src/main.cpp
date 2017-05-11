@@ -31,7 +31,7 @@ void detectAndDisplay( cv::Mat frame, const std::string& path,const std::string&
 /** Global variables */
 //-- Note, either copy these two files from opencv/data/haarscascades to your current folder, or change these locations
 //cv::String face_cascade_name = "../../res/haarcascade_frontalface_alt.xml";
-cv::String face_cascade_name = "/home/bundit/Desktop/computervisionproject160/eyeLike/res/haarcascade_frontalface_alt.xml";
+cv::String face_cascade_name = "/home/jonomint/Desktop/160_Project/eyeLike/res/haarcascade_frontalface_alt.xml";
 cv::CascadeClassifier face_cascade;
 std::string main_window_name = "Capture - Face detection";
 std::string face_window_name = "Capture - Face";
@@ -119,24 +119,24 @@ void findEyes(cv::Mat frame_gray, cv::Rect face, const std::string& path, const 
   circle(debugFace, leftPupil, 3, 1234);
   
   //output image with regions drawn
-  //imwrite("frame.png",frame_gray);
+  imwrite("/home/jonomint/Desktop/pics/frame.png",frame_gray);
 
   //write the coordinates of left and right pupils to console
   //printf("Right Pupil Coordinates: X - %d Y - %d \n", rightPupil.x, rightPupil.y);
   //printf("Left  Pupil Coordinates: X - %d Y - %d \n", leftPupil.x, leftPupil.y);
 
   std::ofstream outfile;
-  outfile.open("/home/bundit/Desktop/computervisionproject160/eyeLike/EyeCoordinatesOutput.txt", std::ofstream::out | std::ofstream::app);
+  outfile.open("/home/jonomint/Desktop/160_Project/eyeLike/EyeCoordinatesOutput.txt", std::ofstream::out | std::ofstream::app);
   //outfile.open(&path, std::ofstream::out | std::ofstream::app);
   outfile << frame_num;
   outfile << ",";
-  outfile << rightPupil.x;
+  outfile << (rightPupil.x + face.x);
   outfile << ",";
-  outfile << rightPupil.y;
+  outfile << (rightPupil.y + face.y);
   outfile << ",";
-  outfile << leftPupil.x;
+  outfile << (leftPupil.x + face.x);
   outfile << ",";
-  outfile << leftPupil.y;
+  outfile << (leftPupil.y + face.y);
   outfile << "\n";
   
   outfile.close();
