@@ -189,9 +189,11 @@ app.post('/register-form', function (req, res){
 
 });
 
-app.post('/users-form', function (req, res){
+app.post('/users-form', function (req, res, next){
   var login = true;
   var dir = '/home/jonomint/Desktop/server_files/user/user1_test'
+  // hard coded
+  var userid = 1;
   if (!fs.existsSync(dir)){
     fs.mkdirSync(dir);
   }
@@ -210,6 +212,25 @@ app.post('/users-form', function (req, res){
     console.log("file uploaded!!!");
   })
 
+  // System call
+  var spawn = require('child_process').spawn;
+  var path = './DissectVideo.py';
+  // create child process of the script and pass one argument from the request
+  var process = spawn('python', [path, dir, userid]);
+  process.stdout.on('data', function(data){
+    console.log("System python script call is working!!", data);
+  })
+
+  // Connect to database;
+  pg.connect(connect, function(err, client, done){
+    if (err){
+      return console.error("error fetching client from pool", err);
+    }
+    console.log("Connected to database!!!!!");
+    //client.query("SELECT max(videoid), imageDirectory from Video where userid=$1 GROUP BY videoid;", [userid])
+    client.query("SELECT max(videoid), imageDirectory from \"Video\" where userid=1 GROUP BY videoid;")
+
+  })
   // redirect to the root route
   res.redirect('/users');
 });
