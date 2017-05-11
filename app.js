@@ -11,7 +11,8 @@ var fs = require('fs');
 // Connect DB
 var pg = require('pg');
 // DB connect String
-var connect = "postgres://postgres:student@localhost:5432/cs160";
+var connect = "postgres://postgres:nicoleiscool@localhost:5432/cs160";
+// var connect = "postgres://postgres:student@localhost:5432/cs160";
 // var client = new pg.Client(connect);
 
 app.use(bodyParser.urlencoded({extended: true})); // support encoded bodies
@@ -46,11 +47,30 @@ app.get('/register', function(req, res){
 
 // User page, get user's data (here is hard coded, later needs to connet to database)
 app.get("/users", function (req, res){
-  var login = false;
-  res.render('users', {login: login});
+  if (req.session.userId) {
+    pg.connect(connect, function(err, client, done){
+      if(err){
+        login =false;
+        return console.error('error fetching client from pool', err);
+      }
+      client.query('SELECT * FROM users WHERE userid = $1', [req.session.userId],function(err, result){
+        if (err){
+          console.log(err);
+
+        } else if (result.rows.length >0){
+          res.render('users', {userid: req.session.userId, username: result.rows[0].username});
+        }
+
+      })
+    })
+
+  } else {
+    res.redirect('/')
+  }
 });
 
 app.get('/logout', function(req, res){
+  req.session.destroy();
   res.redirect('/')
 });
 
@@ -64,55 +84,50 @@ app.post('/login-form', function (req, res, next){
 
   req.session.success = true;
   // Connect to DB:
+  // SQL query -> Insert Data:
+  // var user_ps = client.query("SELECT password FROM users WHERE email = $1", [login_info.email]);
   pg.connect(connect, function(err, client, done){
-    if (err){
-      return console.log('error fetching client from pool', err);
+    if(err){
+      login =false;
+      return console.error('error fetching client from pool', err);
     }
-    console.log("Planning to check login info");
-
-    // SQL query -> Insert Data:
-    // var user_ps = client.query("SELECT password FROM users WHERE email = $1", [login_info.email]);
-    pg.connect(connect, function(err, client, done){
-        if(err){
-          login =false;
-          return console.error('error fetching client from pool', err);
+    client.query('SELECT * FROM users WHERE email = $1', [login_info.email],function(err, result){
+      done(err);
+      if (err){
+        login =false;
+        return console.error('Error running query', err);
+      }
+      console.log("Testing what is result!!", result);
+      if (result.rows.length > 0){
+        if (result.rows[0].password == login_info.password){
+          req.session.userId = result.rows[0].userid;
+          console.log("Congrates! You are logged in succesfully! ");
+          res.redirect('/users');
+          // res.render('users', {username: result.rows[0].username, userid: result.rows[0].userid,login: login});
         }
-        client.query('SELECT * FROM users WHERE email = $1', [login_info.email],function(err, result){
-          done(err);
-          if (err){
-            login =false;
-            return console.error('Error running query', err);
-          }
-          console.log("Testing what is result!!", result.rows);
-          if (result.rows.length > 0){
-            if (result.rows[0].password == login_info.password){
-              res.render('users', {username: result.rows[0].username, login: login});
-              console.log("Congrates! You are logged in succesfully! ");
-            }
-            else{
-              login = false;
-              req.session.errors = "Sorry, wrong password, please try again!";
-              req.session.success = false;
-              console.log("what is the error?zzzzzzzzzzzzzzzzzzzzzz ", req.session.errors);
-              res.redirect('/');
-              // res.render('login', {success: success, errors: errors});
-            }
-          }
-          else{
-            login = false;
-            req.session.errors = "Sorry, this account does not exist, please try again!";
-            req.session.success = false;
-            console.log("what is the error?zzzzzzzzzzzzzzzzzzzzzz ", req.session.errors);
-            // console.log("Sorry, this account does not exist, please try again!");
-            res.redirect('/');
-            // res.render('login', {success: success, errors: errors});
-          }
-        })
-      })
+        else{
+          login = false;
+          req.session.errors = "Sorry, wrong password, please try again!";
+          req.session.success = false;
+          console.log("what is the error?zzzzzzzzzzzzzzzzzzzzzz ", req.session.errors);
+          res.redirect('/');
+          // res.render('login', {success: success, errors: errors});
+        }
+      }
+      else{
+        login = false;
+        req.session.errors = "Sorry, this account does not exist, please try again!";
+        req.session.success = false;
+        console.log("what is the error?zzzzzzzzzzzzzzzzzzzzzz ", req.session.errors);
+        // console.log("Sorry, this account does not exist, please try again!");
+        res.redirect('/');
+        // res.render('login', {success: success, errors: errors});
+      }
+    })
 
-    // console.log("Congradulations! You are registered, please login, and your POST DATA is: ", results.username);
-    // res.render('login', {login: login, username: results.username, success: req.session.success});
-  });
+  // console.log("Congradulations! You are registered, please login, and your POST DATA is: ", results.username);
+  // res.render('login', {login: login, username: results.username, success: req.session.success});
+});
 
   // check validity
   // req.check('email', 'Invalid email address').isEmail();
@@ -181,7 +196,9 @@ app.post('/register-form', function (req, res){
                   [results.email, results.username, results.password, results.firstname, results.lastname]);
                   done();
                   console.log("Congradulations! You are registered, please login, and your POST DATA is: ", results.username);
-                  res.render('login', {login: login, username: results.username, success: req.session.success});
+                  req.session.userId = results.userid;
+                  res.redirect('/users')
+                  // res.render('login', {login: login, username: results.username, success: req.session.success});
 
     });
   }; // else part
@@ -191,7 +208,8 @@ app.post('/register-form', function (req, res){
 
 app.post('/users-form', function (req, res){
   var login = true;
-  var dir = '/home/jonomint/Desktop/server_files/user/user1_test'
+  var dir = '/home/nicole/Desktop/file_test/user/user1_test'
+  // var dir = '/home/jonomint/Desktop/server_files/user/user1_test'
   if (!fs.existsSync(dir)){
     fs.mkdirSync(dir);
   }
@@ -213,6 +231,10 @@ app.post('/users-form', function (req, res){
   // redirect to the root route
   res.redirect('/users');
 });
+
+app.post('/users-form/:userid', function(req, res, next){
+  console.log("testing how user id work:", req.params.userid);
+})
 
 // post pages/methods:
 // First we want get user's info on login pages

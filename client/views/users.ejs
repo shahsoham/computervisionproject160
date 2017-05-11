@@ -31,9 +31,7 @@
       <center>
         <img class="circle responsive-img" style="width: 150px;" src="/imgs/facialdetect.jpg" />
         <div class="section"></div>
-        <% if (login){ %>
-          <h3 class="indigo-text">Hello, <%= username %></h3>
-        <% }%>
+        <h3 class="indigo-text">Hello, <%= username %></h3>
 
         <h4 class="indigo-text">Welcome to our app! </h4>
 
@@ -41,8 +39,9 @@
 
         <div class="container">
           <div class="z-depth-1 grey lighten-4 row" style="display: inline-block; padding: 32px 48px 0px 48px; border: 1px solid #EEE;">
-            <form ref="uploadForm" action="/users-form" method="post" enctype="multipart/form-data">
 
+            <form ref="uploadForm" action="/users-form/<%= userid %>" method="post" enctype="multipart/form-data">
+              
               <center>
                 <h6 class="indigo-text">Please upload your video here.</h6>
                 <br>
