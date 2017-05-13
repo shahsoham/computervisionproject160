@@ -95,8 +95,18 @@
       })
 
       socket.on('file_upload_status', function(upload_status){
-        console.log("upload_status", upload_status.status);
+        console.log("upload_status: ", upload_status.status);
+        $("#status").text(upload_status.status);
       })
+
+      socket.on('get_video_path', function(data){
+        console.log("final video path: ", data.videoid);
+        $("#status").text("Done!");
+        $('#video-player').css('visibility', 'visible');
+        $('#video-player source').attr('src', '../../processed_videos/'+data.videoid+'.mp4');
+        $('#video-player')[0].load();
+      })
+
     })
     </script>
   </head>
@@ -130,7 +140,7 @@
             <form id='file-upload' ref="uploadForm" action="/users-form/<%= userid %>" method="post" enctype="multipart/form-data">
 
               <center>
-                <h6 class="indigo-text">Please upload your video here.</h6>
+                <h6 class="indigo-text"><span id='status'>Please upload your video here.</span></h6>
                 <br>
                 <div class='row'>
                   <input type="file" name="myfile" id="myFile">
@@ -145,7 +155,13 @@
             </form>
           </div>
         </div>
-        <a href="/">Go Back</a>
+        <video controls id='video-player' style='visibility: hidden;'>
+         <source src="./processed_videos/59.mp4" type="video/mp4">
+        </video>
+
+
+        </video>
+        <!-- <a href="/">Go /Back</a> -->
       </center>
 
       <div class="section"></div>

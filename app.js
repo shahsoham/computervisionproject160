@@ -14,6 +14,12 @@ var pg = require('pg');
 var connect = "postgres://postgres:student@localhost:5432/cs160";
 // var connect = "postgres://postgres:student@localhost:5432/cs160";
 // var client = new pg.Client(connect);
+// Runs python scripts
+var child = require('child_process');
+// moving files
+var path = require('path');
+
+
 
 app.use(bodyParser.urlencoded({extended: true})); // support encoded bodies
 app.use(expressValidator()); // this starts validator
@@ -58,7 +64,8 @@ app.get("/users", function (req, res){
           console.log(err);
 
         } else if (result.rows.length >0){
-          res.render('users', {userid: req.session.userId, username: result.rows[0].username});
+          console.log("video path is: ", req.session.videoPath);
+          res.render('users', {userid: req.session.userId, username: result.rows[0].username, videoPath: req.session.videoPath});
         }
 
       })
@@ -206,62 +213,134 @@ app.post('/register-form', function (req, res){
 
 });
 
-function blobToFile(theBlob, fileName){
-    //A Blob() is almost a File() - it's just missing the two properties below which we will add
-    theBlob.lastModifiedDate = new Date();
-    theBlob.name = fileName;
-    return theBlob;
-}
+// function blobToFile(theBlob, fileName){
+//     //A Blob() is almost a File() - it's just missing the two properties below which we will add
+//     theBlob.lastModifiedDate = new Date();
+//     theBlob.name = fileName;
+//     return theBlob;
+// }
 
-function processFile(dir, clientid, userid){
-  // System call
-  var child = require('child_process');
+function DissectVideo(dir, clientid, userid){
+  // System call for process 1
   var path = './DissectVideo.py';
   // create child process of the script and pass one argument from the request
-  var process = child.execFileSync('python', [path, dir, userid]);
+  var process = child.execFile('python', [path, dir, userid], function(error, stdout, stderr){
+    if (error){
+      io.sockets.connected[clientid].emit('file_upload_status', {status: "Failed to dissect video.", error:true});
+      console.log(error);
+    } else {
+      getMetaData(clientid, userid);
+    }
+  });
   // end of process 1
-  console.log("System python script call is working!!");
-  io.sockets.connected[clientid].emit('file_upload_status', {status: "Got facial data points"});
+}
+
+function getMetaData(clientid, userid){
+  console.log("Dissected Video");
   // Connect to database;
   pg.connect(connect, function(err, client, done){
     if (err){
       return console.error("error fetching client from pool", err);
     }
-    console.log("Connected to database!!!!!", userid);
-      client.query('SELECT videoid, imagedirectory  from \"Video\" where userid=$1 ORDER BY videoid DESC limit 1', [userid],function(err, result){
-        if (err){
-          io.sockets.connected[clientid].emit('file_upload_status', {status: "Failed to get Meta-Data"});
-          console.log(err);
-        } else {
-          io.sockets.connected[clientid].emit('file_upload_status', {status: "Got Meta-Data"});
-          var videoid = result.rows[0].videoid;
-          var imageDirectory = result.rows[0].imagedirectory + '/';
-          console.log("success got video id ", videoid, imageDirectory);
+    console.log("Connected to database", userid);
+    client.query('SELECT videoid, imagedirectory  from \"Video\" where userid=$1 ORDER BY videoid DESC limit 1', [userid],function(err, result){
+      if (err){
+        io.sockets.connected[clientid].emit('file_upload_status', {status: "Failed to get Meta-Data", error:true});
+        console.log(err);
+      } else {
+        io.sockets.connected[clientid].emit('file_upload_status', {status: "Getting facial landmarks..."});
+        var videoid = result.rows[0].videoid;
+        var imageDirectory = result.rows[0].imagedirectory + '/';
+        console.log("success got video id ", videoid, imageDirectory);
 
-          // process2
-          var path2 = './DlibGetDataPoints.py'
-          var process2 = child.execFileSync('python', [path2, imageDirectory, videoid]);
-          console.log("Got the facial landmarks successfully")
-          // end of process 2
-          io.sockets.connected[clientid].emit('file_upload_status', {status: "Got facial landmarks"});
-          // process3
-          var path3 = 'eyeLike/EyePoints.py'
-          var process3 = child.execFileSync('python', [path3, imageDirectory, videoid]);
-          console.log("Got the pupil points successfully")
-          // end of process 3
-          io.sockets.connected[clientid].emit('file_upload_status', {status: "Got pupil data"});
-
-          // process4
-          var path4 = './DelaunayDrawing.py'
-          var process4 = child.execFileSync('python', [path4, imageDirectory, videoid]);
-          io.sockets.connected[clientid].emit('file_upload_status', {status: "Drew delaunay triangles"});
-          console.log("drew the delaunay triangles and stitched the video")
-          // end of process 4
-        }
-      })
+        GetDataPoints(imageDirectory, videoid, clientid, userid);
+      }
+    })
   })
-
 }
+
+function GetDataPoints(imageDirectory, videoid, clientid, userid){
+  // process 2
+  var path = './DlibGetDataPoints.py'
+  var process = child.execFile('python', [path, imageDirectory, videoid], function(error, stdout, stderr){
+    if (error){
+      io.sockets.connected[clientid].emit('file_upload_status', {status: "Failed to get facial landmarks.", error:true});
+      console.log(error);
+    } else {
+      io.sockets.connected[clientid].emit('file_upload_status', {status: "Getting pupil data..."});
+      console.log("Got the facial landmarks successfully")
+      GetEyePoints(imageDirectory, videoid, clientid, userid);
+    }
+  });
+  // end of process 2
+}
+
+function GetEyePoints(imageDirectory, videoid, clientid, userid){
+  // process 3
+  var path = 'eyeLike/EyePoints.py'
+  var process = child.execFile('python', [path, imageDirectory, videoid], function(error, stdout, stderr){
+    if (error){
+      io.sockets.connected[clientid].emit('file_upload_status', {status: "Failed to get pupil data.", error:true});
+      console.log(error);
+    } else {
+      io.sockets.connected[clientid].emit('file_upload_status', {status: "Drawing delaunay triangles..."});
+      console.log("Got the pupil points successfully...");
+      MakeDelaunayDrawing(imageDirectory, videoid, clientid, userid);
+    }
+  });
+  // end of process 3
+}
+function MakeDelaunayDrawing(imageDirectory, videoid, clientid, userid){
+  // process4
+  var path4 = './DelaunayDrawing.py'
+  var process4 = child.execFile('python', [path4, imageDirectory, videoid], function(error, stdout, stderr){
+    if (error){
+      io.sockets.connected[clientid].emit('file_upload_status', {status: "Failed to draw delaunay triangles.", error:true});
+      console.log(error);
+    } else {
+      io.sockets.connected[clientid].emit('file_upload_status', {status: "Video complete!"});
+      console.log("drew the delaunay triangles and stitched the video")
+      // end of process 4
+      var videoPath = '/home/jonomint/Desktop/CV_project/users/user_' + userid +'/'+ videoid + '.mp4'
+      // io.sockets.connected[clientid].emit('get_video_path', {path: videoPath});
+      console.log("hey videoPath: ", videoPath);
+      moveFileToLocalFolder(videoPath, clientid, videoid);
+    }
+  });
+}
+
+function moveFileToLocalFolder(src, clientid, videoid){
+
+  var localPath = './client/static/processed_videos/'+videoid+'.mp4';
+  var dest = path.join(__dirname, localPath);
+
+  copyFile(src, dest, function(){
+    io.sockets.connected[clientid].emit('get_video_path', {videoid: videoid});
+  });
+  // fs.access(destDir, (err) => {
+  //   if(err)
+  //     fs.mkdirSync(destDir);
+  //
+  // });
+}
+function copyFile(src, dest, done) {
+
+  var readStream = fs.createReadStream(src);
+
+  readStream.once('error', (err) => {
+    console.log(err);
+  });
+
+  readStream.once('end', () => {
+    console.log('done copying');
+    done();
+  });
+
+  readStream.pipe(fs.createWriteStream(dest));
+}
+
+
+
 
 app.post('/file-upload/:clientId', function (req, res, next){
   if (req.session.userId) {
@@ -294,10 +373,14 @@ app.post('/file-upload/:clientId', function (req, res, next){
       file.mv(dir, function(err){
         if(err){
           console.log("Failed to save file", err);
-          io.sockets.connected[clientid].emit('file_upload_status', {status: "Failed to save file"})
+          io.sockets.connected[clientid].emit('file_upload_status', {status: "Failed to save file", error:true})
         } else {
-          io.sockets.connected[clientid].emit('file_upload_status', {status: "File uploaded!!!"})
-          processFile(dir, clientid, userid);
+          io.sockets.connected[clientid].emit('file_upload_status', {status: "File uploaded. Spliting video.."})
+          // DissectVideo(dir, clientid, userid);
+          // New added (not sure):
+          var videoPath = DissectVideo(dir, clientid, userid);
+          // req.session.videoPath = videoPath;
+          // console.log("video path is: ", req.session.videoPath);
         }
       })
 
