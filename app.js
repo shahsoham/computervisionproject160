@@ -10,9 +10,8 @@ var fs = require('fs');
 // var router = require('./server/controllers/database.js')
 // Connect DB
 var pg = require('pg');
-// DB connect String
+// DB connect String, the string cannot be changed to your own db
 var connect = "postgres://postgres:student@localhost:5432/cs160";
-// var connect = "postgres://postgres:student@localhost:5432/cs160";
 // var client = new pg.Client(connect);
 // Runs python scripts
 var child = require('child_process');
@@ -204,7 +203,8 @@ app.post('/register-form', function (req, res){
                   done();
                   console.log("Congradulations! You are registered, please login, and your POST DATA is: ", results.username);
                   req.session.userId = results.userid;
-                  res.redirect('/users')
+                  console.log("Here is your userId: ");
+                  res.redirect('/')
                   // res.render('login', {login: login, username: results.username, success: req.session.success});
 
     });
@@ -212,13 +212,6 @@ app.post('/register-form', function (req, res){
 
 
 });
-
-// function blobToFile(theBlob, fileName){
-//     //A Blob() is almost a File() - it's just missing the two properties below which we will add
-//     theBlob.lastModifiedDate = new Date();
-//     theBlob.name = fileName;
-//     return theBlob;
-// }
 
 function DissectVideo(dir, clientid, userid){
   // System call for process 1
@@ -317,11 +310,6 @@ function moveFileToLocalFolder(src, clientid, videoid){
   copyFile(src, dest, function(){
     io.sockets.connected[clientid].emit('get_video_path', {videoid: videoid});
   });
-  // fs.access(destDir, (err) => {
-  //   if(err)
-  //     fs.mkdirSync(destDir);
-  //
-  // });
 }
 function copyFile(src, dest, done) {
 
@@ -345,9 +333,6 @@ function copyFile(src, dest, done) {
 app.post('/file-upload/:clientId', function (req, res, next){
   if (req.session.userId) {
     console.log("clientId:", req.params.clientId);
-    // console.log("files", req.body);
-
-
     var login = true;
     var userid = req.session.userId;
     var clientid = req.params.clientId;
