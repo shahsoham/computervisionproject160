@@ -1,3 +1,6 @@
+// Authors: Changtong Zhou, Bundit Hongmanee, Jonathan Neel, Soham Shah
+// Date: May 15, 2017
+
 var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
