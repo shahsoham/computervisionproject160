@@ -2,7 +2,8 @@ import sys
 from subprocess import call
 import os
 import psycopg2
-
+# Authors: Changtong Zhou, Bundit Hongmanee, Jonathan Neel, Soham Shah
+# Date: May 15, 2017
 
 """
 argv[1] = filepath to directory of folder of frames
@@ -11,7 +12,7 @@ argv[2] = videoID
 def main(argv):
 	if(len(sys.argv) != 3):
 		print("Error! Invalid number of arguments")
-		sys.exit(2) 
+		sys.exit(2)
 	elif(sys.argv[1][0] != '/' and sys.argv[1][len(sys.argv[1]) - 1] != '/'):
 		print("Error! Not a valid directory")
 		sys.exit(2)
@@ -54,7 +55,7 @@ def main(argv):
 	@imageDirectory the directory with all the images to process
 	@frame_count the number of frames in the directory
 	@videoID ID for database
-"""	
+"""
 def getEyePointsToFile(imageDirectory, frame_count, videoID):
 
 	for frame in range(1, frame_count + 1):
@@ -64,13 +65,13 @@ def getEyePointsToFile(imageDirectory, frame_count, videoID):
 		call(['/home/jonomint/Desktop/160_Project/eyeLike/build/bin/./eyeLike', imagePath, '1', str(frame)])
 
 """
-	Inserts the eye coordinates in the database 
+	Inserts the eye coordinates in the database
 	@file the file to retrieve data from
 	@videoID key for database inserts
 	@cur cursor used for database access
 """
 def insertEyePointsToDB(file, videoID, cur, conn):
-	
+
 	#Check if file exists, if not then exit
 	if not os.path.exists(file):
 		print "EyeCoordinatesOutput.txt could not be found"

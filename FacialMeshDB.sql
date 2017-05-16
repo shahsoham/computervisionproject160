@@ -1,4 +1,5 @@
-CREATE DATABASE cs160;
+-- Authors: Changtong Zhou, Bundit Hongmanee, Jonathan Neel, Soham Shah
+-- Date: May 15, 2017CREATE DATABASE cs160;
 \c cs160
 
 DROP TABLE IF EXISTS "users" CASCADE;

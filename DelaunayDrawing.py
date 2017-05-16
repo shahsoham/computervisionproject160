@@ -4,12 +4,13 @@ import psycopg2
 import sys, os
 from subprocess import call
 import re
-
+# Authors: Changtong Zhou, Bundit Hongmanee, Jonathan Neel, Soham Shah
+# Date: May 15, 2017
 #first argument is path to images, second is the videoID being operated on
 def main(argv):
 	if(len(sys.argv) != 3):
 		print("Error! Invalid number of arguments")
-		sys.exit(2) 
+		sys.exit(2)
 	elif(sys.argv[1][0] != '/' and sys.argv[1][len(sys.argv[1]) - 1] != '/'):
 		print("Error! Not a valid directory")
 		sys.exit(2)
@@ -27,7 +28,7 @@ def main(argv):
 			imageDirectory = sys.argv[1]
 			videoID = sys.argv[2]
 	#bind our python point type to be output of queries returning postgres point type
-	createPointType(cur) 
+	createPointType(cur)
 
 	#get the frame count, dimensions, etc of the video
 	cur.execute("""SELECT frame_count, width, height, fps FROM "Video"
@@ -39,11 +40,11 @@ def main(argv):
 	fps = values[3]
 	drawOverTheImages(imageDirectory, frame_count, videoID, cur, fps)
 
-	
+
 """
-draws the delaunay triangles over the images in the given directory and 
+draws the delaunay triangles over the images in the given directory and
 dumps the output images
-takes arguments for the imageDriectory, frame_count, videoID, and 
+takes arguments for the imageDriectory, frame_count, videoID, and
 the cursor for the database connection
 """
 def drawOverTheImages(imageDirectory, frame_count, videoID, cur, fps):
@@ -65,28 +66,29 @@ def drawOverTheImages(imageDirectory, frame_count, videoID, cur, fps):
 		#images follow naming convention videoId.frame_number.jpg
 		imagePath = imageDirectory + str(videoID) + '.' + str(frame) + '.png'
 		outputImage = outputDirectory + str(videoID) + '.' + str(frame) + '.out.png'
-		cur.execute("""SELECT datapoint1, datapoint2, datapoint3, datapoint4, datapoint5, datapoint6, 
-		datapoint7, datapoint8, datapoint9, datapoint10, datapoint11, datapoint12, 
-		datapoint13, datapoint14, datapoint15, datapoint16, datapoint17, datapoint18, 
-		datapoint19, datapoint20, datapoint21, datapoint22, datapoint23, datapoint24, 
-		datapoint25, datapoint26, datapoint27, datapoint28, datapoint29, datapoint30, 
-		datapoint31, datapoint32, datapoint33, datapoint34, datapoint35, datapoint36, 
-		datapoint37, datapoint38, datapoint39, datapoint40, datapoint41, datapoint42, 
-		datapoint43, datapoint44, datapoint45, datapoint46, datapoint47, datapoint48, 
-		datapoint49, datapoint50, datapoint51, datapoint52, datapoint53, datapoint54, 
-		datapoint55, datapoint56, datapoint57, datapoint58, datapoint59, datapoint60, 
-		datapoint61, datapoint62, datapoint63, datapoint64, datapoint65, datapoint66, 
-		datapoint67, datapoint68, leftfabianpupil, rightfabianpupil FROM "OpenFaceData", 
-		"PupilData" WHERE "OpenFaceData".videoid = "PupilData".videoid 
-		AND "OpenFaceData".frame_number="PupilData".frame_number 
+		cur.execute("""SELECT datapoint1, datapoint2, datapoint3, datapoint4, datapoint5, datapoint6,
+		datapoint7, datapoint8, datapoint9, datapoint10, datapoint11, datapoint12,
+		datapoint13, datapoint14, datapoint15, datapoint16, datapoint17, datapoint18,
+		datapoint19, datapoint20, datapoint21, datapoint22, datapoint23, datapoint24,
+		datapoint25, datapoint26, datapoint27, datapoint28, datapoint29, datapoint30,
+		datapoint31, datapoint32, datapoint33, datapoint34, datapoint35, datapoint36,
+		datapoint37, datapoint38, datapoint39, datapoint40, datapoint41, datapoint42,
+		datapoint43, datapoint44, datapoint45, datapoint46, datapoint47, datapoint48,
+		datapoint49, datapoint50, datapoint51, datapoint52, datapoint53, datapoint54,
+		datapoint55, datapoint56, datapoint57, datapoint58, datapoint59, datapoint60,
+		datapoint61, datapoint62, datapoint63, datapoint64, datapoint65, datapoint66,
+		datapoint67, datapoint68, leftfabianpupil, rightfabianpupil FROM "OpenFaceData",
+		"PupilData" WHERE "OpenFaceData".videoid = "PupilData".videoid
+		AND "OpenFaceData".frame_number="PupilData".frame_number
 		AND "OpenFaceData".videoid=%s AND "OpenFaceData".frame_number=%s
 		""", (videoID, frame))
 		current_points = cur.fetchone()
 		#now begin using code from the sample program
 		#put the data points in a list
 		points = [];
-		for point in current_points:
-			points.append((int(point.x), int(point.y))); #openface gives floats, opencv needs ints
+		if current_points is not None:
+			for point in current_points:
+				points.append((int(point.x), int(point.y))); #openface gives floats, opencv needs ints
 		# Read in the image.
 		img = cv2.imread(imagePath);
 		# Keep a copy around
@@ -123,13 +125,13 @@ def cast_point(value, cur):
 		raise InterfaceError("bad point representation: %r" % value)
 
 #binds our user defined point type as output of postgres point types
-def createPointType(cur): 
+def createPointType(cur):
 	cur.execute("SELECT NULL::point") #must get the oid for the point class
 	point_oid = cur.description[0][1]
 	POINT = psycopg2.extensions.new_type((point_oid,), "POINT", cast_point)
 	psycopg2.extensions.register_type(POINT)
 
-# Check if a point is inside a rectangle. 
+# Check if a point is inside a rectangle.
 # from Robert Bruce example_draw_delaunay_triangles.py
 def rect_contains(rect, point) :
     if point[0] < rect[0] :
@@ -141,7 +143,7 @@ def rect_contains(rect, point) :
     elif point[1] > rect[3] :
         return False
     return True
- 
+
 # Draw a point
 # from Robert Bruce example_draw_delaunay_triangles.py
 def draw_point(img, p, color ) :
@@ -150,11 +152,11 @@ def draw_point(img, p, color ) :
 # Draw delaunay triangles
 # from Robert Bruce example_draw_delaunay_triangles.py
 def draw_delaunay(img, subdiv, delaunay_color ) :
- 
+
     triangleList = subdiv.getTriangleList();
     size = img.shape
     r = (0, 0, size[1], size[0])
- 
+
     for t in triangleList :
         pt1 = (t[0], t[1])
         pt2 = (t[2], t[3])
@@ -163,7 +165,7 @@ def draw_delaunay(img, subdiv, delaunay_color ) :
             cv2.line(img, pt1, pt2, delaunay_color, thickness=1, lineType=cv2.LINE_AA, shift=0)
             cv2.line(img, pt2, pt3, delaunay_color, thickness=1, lineType=cv2.LINE_AA, shift=0)
             cv2.line(img, pt3, pt1, delaunay_color, thickness=1, lineType=cv2.LINE_AA, shift=0)
- 
+
 
 if __name__ == "__main__":
    main(sys.argv[1:])

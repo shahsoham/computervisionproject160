@@ -1,6 +1,7 @@
 #! /usr/bin/python
 # requires install of psycopg2 (use pip), dlib, and skimage
-
+# Authors: Changtong Zhou, Bundit Hongmanee, Jonathan Neel, Soham Shah
+# Date: May 15, 2017
 import sys
 from subprocess import call
 import os
@@ -53,7 +54,10 @@ def insertIntoDatabase(imageDirectory, videoID, frame_count):
 		fileName = imageDirectory + str(videoID) + '.' + str(frame) + '.png'
 		points = [] #instantiate an empty list to store the coordinate x y pairs
 		img = io.imread(fileName)
-		detected = detector(img, 1)[0] #only write for the first detected face
+		detected = detector(img, 1)
+		if not detected: #skip the image if no face is detected
+			continue
+		else: detected = detected[0] #only write for the first detected face
 		shape = predictor(img, detected)
 		for dataPoint in range(0, 68):
 			currentPoint = Point(float(shape.part(dataPoint).x), float(shape.part(dataPoint).y))

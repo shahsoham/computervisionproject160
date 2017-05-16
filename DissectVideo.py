@@ -2,7 +2,8 @@ import sys
 from subprocess import call, check_output
 import os
 import psycopg2
-
+# Authors: Changtong Zhou, Bundit Hongmanee, Jonathan Neel, Soham Shah
+# Date: May 15, 2017
 #video path, userID are the command line arguments
 def main(argv):
 	videoPath = sys.argv[1]
@@ -12,19 +13,19 @@ def main(argv):
 	if not os.path.exists(outputDirectory):
 		os.makedirs(outputDirectory)
 	#getting video framecount
-	frame_count = int(check_output(['ffprobe', '-v', 'error', '-count_frames', '-select_streams', 'v:0', 
+	frame_count = int(check_output(['ffprobe', '-v', 'error', '-count_frames', '-select_streams', 'v:0',
 		'-show_entries', 'stream=nb_read_frames', '-of', 'default=nokey=1:noprint_wrappers=1', videoPath ]))
 	#frame_rate is returned as a single string representing a ratio of ints eg: 30300/1000
-	frame_rate_str = check_output(['ffprobe', '-v', 'error', '-select_streams', 'v:0', 
+	frame_rate_str = check_output(['ffprobe', '-v', 'error', '-select_streams', 'v:0',
 		'-show_entries', 'stream=avg_frame_rate', '-of', 'default=noprint_wrappers=1:nokey=1', videoPath ])
 	#parse and cast the string
 	frame_rate = float(int(frame_rate_str.split('/')[0]) / int(frame_rate_str.split('/')[1]))
 	#getting width, height
-	width = int(check_output(['ffprobe', '-v', 'error', '-of', 'default=nokey=1:noprint_wrappers=1', '-select_streams', 
+	width = int(check_output(['ffprobe', '-v', 'error', '-of', 'default=nokey=1:noprint_wrappers=1', '-select_streams',
 		'v:0', '-show_entries', 'stream=width', videoPath]))
-	height = int(check_output(['ffprobe', '-v', 'error', '-of', 'default=nokey=1:noprint_wrappers=1', '-select_streams', 
+	height = int(check_output(['ffprobe', '-v', 'error', '-of', 'default=nokey=1:noprint_wrappers=1', '-select_streams',
 		'v:0', '-show_entries', 'stream=height', videoPath]))
-	
+
 	#enter the video data into the database
 	try:
 		conn = psycopg2.connect("dbname='cs160' user='postgres' host='localhost' password='student'")
