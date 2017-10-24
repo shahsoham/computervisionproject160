@@ -9,8 +9,7 @@ var expressSession = require('express-session');
 var bcrypt = require('bcryptjs');
 var fileUpload = require('express-fileupload');
 var fs = require('fs');
-// var database = require('./server/controllers/database.js');
-// var router = require('./server/controllers/database.js')
+
 // Connect DB
 var pg = require('pg');
 // DB connect String, the string cannot be changed to your own db
@@ -94,7 +93,6 @@ app.post('/login-form', function (req, res, next){
   req.session.success = true;
   // Connect to DB:
   // SQL query -> Insert Data:
-  // var user_ps = client.query("SELECT password FROM users WHERE email = $1", [login_info.email]);
   pg.connect(connect, function(err, client, done){
     if(err){
       login =false;
@@ -112,51 +110,24 @@ app.post('/login-form', function (req, res, next){
           req.session.userId = result.rows[0].userid;
           console.log("Congrates! You are logged in succesfully! ");
           res.redirect('/users');
-          // res.render('users', {username: result.rows[0].username, userid: result.rows[0].userid,login: login});
         }
         else{
           login = false;
           req.session.errors = "Sorry, wrong password, please try again!";
           req.session.success = false;
-          console.log("what is the error?zzzzzzzzzzzzzzzzzzzzzz ", req.session.errors);
+          console.log("what is the error?", req.session.errors);
           res.redirect('/');
-          // res.render('login', {success: success, errors: errors});
         }
       }
       else{
         login = false;
         req.session.errors = "Sorry, this account does not exist, please try again!";
         req.session.success = false;
-        console.log("what is the error?zzzzzzzzzzzzzzzzzzzzzz ", req.session.errors);
-        // console.log("Sorry, this account does not exist, please try again!");
+        console.log("what is the error? ", req.session.errors);
         res.redirect('/');
-        // res.render('login', {success: success, errors: errors});
       }
     })
-
-  // console.log("Congradulations! You are registered, please login, and your POST DATA is: ", results.username);
-  // res.render('login', {login: login, username: results.username, success: req.session.success});
 });
-
-  // check validity
-  // req.check('email', 'Invalid email address').isEmail();
-  // req.check('password', 'Password is empty or too short').isLength({min: 4});
-  // req.check('confirmPassword', 'Your confirmed password does not match with password').equals(req.body.password);
-  // var errors = req.validationErrors();
-  // if (errors){
-  //   req.session.errors = errors;
-  //   req.session.success = false;
-  //   for (var i in errors){
-  //     console.log("checking error: " + errors[i].msg);
-  //   }
-  //   res.redirect('/');
-  //   // req.session.errors = null;
-  // } else{
-  //   req.session.success = true;
-  //   var email = req.body.email;
-  //   console.log("Congradulations! You are logged in, and your POST DATA is: ", req.body);
-  //   res.render('users', {email: email});
-  // }
 });
 
 // post rout for register page
@@ -208,10 +179,8 @@ app.post('/register-form', function (req, res){
                   req.session.userId = results.userid;
                   console.log("Here is your userId: ");
                   res.redirect('/')
-                  // res.render('login', {login: login, username: results.username, success: req.session.success});
-
     });
-  }; // else part
+  }; 
 
 
 });
@@ -364,42 +333,10 @@ app.post('/file-upload/:clientId', function (req, res, next){
           io.sockets.connected[clientid].emit('file_upload_status', {status: "Failed to save file", error:true})
         } else {
           io.sockets.connected[clientid].emit('file_upload_status', {status: "File uploaded. Spliting video.."})
-          // DissectVideo(dir, clientid, userid);
-          // New added (not sure):
           var videoPath = DissectVideo(dir, clientid, userid);
-          // req.session.videoPath = videoPath;
           // console.log("video path is: ", req.session.videoPath);
         }
       })
-
-      // // System call
-      // var spawn = require('child_process').spawn;
-      // var path = './DissectVideo.py';
-      // // create child process of the script and pass one argument from the request
-      // var process = spawn('python', [path, dir, userid]);
-      // process.on('close', function(data){
-      //   console.log("System python script call is working!!", data);
-      // })
-      //
-      // // Connect to database;
-      // pg.connect(connect, function(err, client, done){
-      //   if (err){
-      //     return console.error("error fetching client from pool", err);
-      //   }
-      //   console.log("Connected to database!!!!!");
-      //
-      //   client.query('max(videoid), imageDirectory from \"Video\" where userid=$1 GROUP BY videoid', userid,function(err, result){
-      //     if (err){
-      //       console.log(err);
-      //     }
-      //
-      //   })
-      //
-      //   //client.query("SELECT max(videoid), imageDirectory from Video where userid=$1 GROUP BY videoid;", [userid])
-      //   //client.query("SELECT max(videoid), imageDirectory from \"Video\" where userid=1 GROUP BY videoid;")
-
-      // })
-      // redirect to the root route
     }
     res.status(200).send("done")
   } else {
@@ -426,7 +363,7 @@ var server = app.listen(port, function(){
 });
 
 
-// sockets
+// Open sockets
 var io = require('socket.io')(server);
 
 io.on('connection', function(client){
