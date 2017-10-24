@@ -39,15 +39,13 @@
         $form = $(e.target);
 
     		// Serialize the form data
-    		// var data = $form.serialize();
+    		
         var data = new FormData();
         data.append("upload", files[0])
-    		// You should sterilise the file names
-    		// $.each(data.files, function(key, value){
-    		// 	data = data + '&filenames[]=' + value;
-    		// });
-
+    
         console.log('data:', files[0])
+        
+        // Use Ajax to handle requests without rerendering the web page
         $.ajax({
           url: '/file-upload/'+clientId,
           type: 'POST',
@@ -72,19 +70,6 @@
           }
         });
 
-        // var input = $('#myFile');
-        // else if (!input.files) { alert("This browser doesn't seem to support the `files` property of file inputs."); }
-        // else if (!input.files[0]) { alert("Please select a file before clicking 'Load'"); }
-        // else {
-        //   file = input.files[0];
-        //   fr = new FileReader();
-        //   fr.onload = file_loaded;
-        //   fr.readAsDataURL(file);
-        // }
-
-
-        // console.log(files);
-        // socket.emit('file_upload', {file:files});
         return false;
       })
 
